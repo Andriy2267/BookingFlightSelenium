@@ -17,4 +17,7 @@ with BookingFlight(teardown=False) as bot:
     bot.select_oneway_flight_date(checkin="2025-06-20")
     bot.select_flight_occupancy(adults=1, children=1, children_ages=[5])
     bot.select_search_button()
+    bot.select_BCF_flight()
+    bot.report_results()
+
 

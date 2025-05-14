@@ -7,6 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 from .captcha_solver import solve_funcaptcha
+from selenium.common.exceptions import StaleElementReferenceException
+from .components.flight_report import BookingFlightReport
 
 class BookingFlight(webdriver.Chrome):
 
@@ -212,8 +214,36 @@ class BookingFlight(webdriver.Chrome):
         wait = WebDriverWait(self, 10)
         wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-ui-name="button_search_submit"]'))).click()
 
+    
+    def select_BCF_flight(self, flight_rate: str = "Cheapest"):
+        wait = WebDriverWait(self, 30)
+
+        valid_options = {"BEST", "CHEAPEST", "FASTEST"}
+        rate_upper = flight_rate.upper()
+
+        if rate_upper not in valid_options:
+            raise ValueError(f"Invalid flight_rate '{flight_rate}'. Must be one of: {', '.join(valid_options)}")
+        
+        try:
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, '[class^="modal-module__overlay___"]')))
+        except:
+            pass
+
+        tab_locator = (By.CSS_SELECTOR, f'button[data-testid="search_tabs_{rate_upper}"]')
+
+        for attempt in range(3):
+            try:
+                wait.until(lambda driver: driver.find_element(*tab_locator).is_enabled() and driver.find_element(*tab_locator).click() is None)
+                break
+            except StaleElementReferenceException:
+                continue
 
 
+    def report_results(self):
+        wait = WebDriverWait(self, 40)
+        flight_boxes = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[tabindex="0"]')))
+        report = BookingFlightReport(flight_boxes)
+        print(report.pull_flight_box_attributes())
 
 
 
