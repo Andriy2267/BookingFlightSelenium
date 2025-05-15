@@ -4,7 +4,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
+from db.database import save_flight_to_db, create_tables
 import re
+
 
 class BookingFlightReport:
 
@@ -101,7 +103,7 @@ class BookingFlightReport:
                     flight_no = "N/A"
 
                 # Close modal window
-                close_btn = modal.find_element(By.CSS_SELECTOR, 'button[class="Actionable-module__root___R7KVb Button-module__root___fc6ts Button-module__root--variant-tertiary___h3ti4 Button-module__root--icon-only___9nJ1C Button-module__root--size-medium___AhzfB Button-module__root--variant-tertiary-neutral___IHuoF"]').click()
+                modal.find_element(By.CSS_SELECTOR, 'button[class="Actionable-module__root___R7KVb Button-module__root___fc6ts Button-module__root--variant-tertiary___h3ti4 Button-module__root--icon-only___9nJ1C Button-module__root--size-medium___AhzfB Button-module__root--variant-tertiary-neutral___IHuoF"]').click()
 
                 WebDriverWait(self.driver, 25).until(
                     EC.invisibility_of_element_located((By.CSS_SELECTOR, "[role='dialog']"))
@@ -109,9 +111,17 @@ class BookingFlightReport:
 
             except TimeoutException:
                 print("Timeout waiting for modal or elements. Пропускаємо цей рейс.")
+
             except Exception as e:
                 print(f"Помилка при обробці flight_box: {e}")
                 continue
+
+            try:
+                create_tables()
+                save_flight_to_db([carrier_name, trip_duration_minute, shown_price, total_price, cabin_class, flight_no])
+            except Exception as e:
+
+                print(f"DB save error: {e}")
 
             collection.append([carrier_name, trip_duration_minute, shown_price, total_price, cabin_class, flight_no])
 
