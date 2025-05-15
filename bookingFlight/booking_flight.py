@@ -242,7 +242,7 @@ class BookingFlight(webdriver.Chrome):
     def report_results(self):
         wait = WebDriverWait(self, 40)
         flight_boxes = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[tabindex="0"]')))
-        report = BookingFlightReport(flight_boxes)
+        report = BookingFlightReport(self, flight_boxes)
         print(report.pull_flight_box_attributes())
 
 
